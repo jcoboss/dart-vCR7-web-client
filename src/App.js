@@ -1,14 +1,17 @@
 import './App.css';
+import React, { useState } from "react";
 import {
   Typography,
   Grid,
   Paper,
-  TextareaAutosize,
   Button
 } from "@material-ui/core";
 import { DataGrid } from '@material-ui/data-grid';
 import { createMuiTheme } from '@material-ui/core/styles';
 import { ThemeProvider, withStyles } from '@material-ui/styles';
+import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/theme-terminal";
 
 const darkTheme = createMuiTheme({
   palette: {
@@ -69,7 +72,12 @@ const StyledPaper = withStyles((theme) => ({
   },
 }))(Paper);
 
+function onChange(newValue) {
+  console.log("change", newValue);
+}
+
 function App() {
+  
   return (
     <ThemeProvider theme={darkTheme}>
       <StyledPaper elevation={0} square>
@@ -86,12 +94,14 @@ function App() {
               <Typography className="app-subtitle" variant="h6" >
                 {"Escriba código en Dart-vCR7"}
               </Typography>
-              <TextareaAutosize
-                style={{ width: "100%", backgroundColor: 'black', color: 'white', resize:'none', marginRight: "20px"}}
-                rows={25}
-                rowsMax={25}
-                aria-label="maximum height"
-                placeholder="Write code"
+              <AceEditor
+                style={{width: "100%"}}
+                mode="java"
+                theme="terminal"
+                fontSize={17}
+                onChange={onChange}
+                name="UNIQUE_ID_OF_DIV"
+                editorProps={{ $blockScrolling: true }}
               />
               <Button variant="primary">
                 {'Evaluar'}
