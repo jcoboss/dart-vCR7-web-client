@@ -1,5 +1,5 @@
 import './App.css';
-import React, {useState} from "react";
+import React, {useRef, useState} from "react";
 import {
   Typography,
   Grid,
@@ -68,11 +68,11 @@ function App() {
   const [syntaxOutput, setSyntaxOutput] = useState('');
   const [loadingRows, setLoadingRows] = useState(false);
   const [code, setCode] = useState("");
-  
+  let aceEditor = useRef(null);
 
   const evaluate = (code) => {
     setLoadingRows(true);
-    fetch("http://127.0.0.1:8000/api/analyzer/", {
+    fetch("/api/analyzer/", {
       method: 'POST',
       body: JSON.stringify({code})
     }).then(res => {
@@ -104,6 +104,7 @@ function App() {
                 {"Escriba código en Dart-vCR7"}
               </Typography>
               <AceEditor
+                ref={aceEditor}
                 style={{width: "100%", marginTop: '10px'}}
                 mode="java"
                 theme="terminal"
@@ -111,10 +112,6 @@ function App() {
                 onChange={(value)=>{
                   setCode(value);
                 }}
-                onSelectionChange(selection) {
-                  const content = this.refs.aceEditor.editor.session.getTextRange(selection.getRange());
-                  // use content
-                }
                 name="UNIQUE_ID_OF_DIV"
                 editorProps={{ $blockScrolling: true }}
                 setOptions={{
