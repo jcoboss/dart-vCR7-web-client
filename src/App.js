@@ -1,5 +1,5 @@
 import './App.css';
-import React from "react";
+import React, {useState} from "react";
 import {
   Typography,
   Grid,
@@ -39,15 +39,20 @@ const columns = [
     field: 'tipo',
     headerName: 'Tipo',
     width: 150,
+  },
+  { 
+    field: 'colno',
+    headerName: 'Columna',
+    width: 120 
   }
 ];
 
-const rows = [
+/*const rows = [
   { id: 1,linea: 1, token: 'Snow', tipo: "NULL"},
   { id: 2,linea: 2, token: 'Snow A', tipo: "A"},
   { id: 3,linea: 3, token: 'Snow C', tipo: "B"},
   { id: 4,linea: 4, token: 'Snow D', tipo: "C"}
-]
+]*/
 
 const StyledPaper = withStyles((theme) => ({
   root: {
@@ -56,12 +61,32 @@ const StyledPaper = withStyles((theme) => ({
   },
 }))(Paper);
 
-function onChange(newValue) {
-  console.log("change", newValue);
-}
 
 function App() {
+  const [rows, setRows] = useState([]);
+  const [lexOutput, setLexOutput] = useState('');
+  const [syntaxOutput, setSyntaxOutput] = useState('');
+  const [loadingRows, setLoadingRows] = useState(false);
+  const [code, setCode] = useState("");
   
+
+  const evaluate = (code) => {
+    setLoadingRows(true);
+    fetch("http://127.0.0.1:8000/api/analyzer/", {
+      method: 'POST',
+      body: JSON.stringify({code})
+    }).then(res => {
+      return res.json();
+    }).then(data => {
+      console.log(data)
+      setRows(data.tokens);
+      setLexOutput(data.lex_output);
+      setSyntaxOutput(data.syntax_output);
+    }).finally(()=>{
+      setLoadingRows(false);
+    })
+  }
+
   return (
     <ThemeProvider theme={darkTheme}>
       <StyledPaper elevation={0} square>
@@ -83,14 +108,23 @@ function App() {
                 mode="java"
                 theme="terminal"
                 fontSize={17}
-                onChange={onChange}
+                onChange={(value)=>{
+                  setCode(value);
+                }}
+                onSelectionChange(selection) {
+                  const content = this.refs.aceEditor.editor.session.getTextRange(selection.getRange());
+                  // use content
+                }
                 name="UNIQUE_ID_OF_DIV"
                 editorProps={{ $blockScrolling: true }}
                 setOptions={{
                   tabSize: 2
               }}
               />
-              <Button style={{marginTop: '10px'}} variant="contained">
+              <Button 
+                style={{marginTop: '10px'}}
+                variant="contained"
+                onClick={()=> {evaluate(code);}}>
                 {'Evaluar'}
               </Button>
             </Paper>
@@ -103,9 +137,11 @@ function App() {
             </Typography>
             <div style={{ height: 350, width: '100%', marginTop: '10px'}}>
               <DataGrid
+                density={"compact"}
+                loading={loadingRows}
                 rows={rows}
                 columns={columns}
-                pageSize={5}
+                //pageSize={5}
                 editMode={false}
                 isCellEditable={()=>false}
                 isRowSelectable={()=>false}
@@ -118,8 +154,17 @@ function App() {
               <Typography className="app-subtitle" variant="h6" >
                 {"Logs"}
               </Typography>
-              <Typography className="app-subtitle" variant="body" >
-                {"Unexpected toke at line 1 LBRACE"}
+              <Typography className="app-subtitle" variant="subtitle2" >
+                {"Lexical logs: "}
+              </Typography>
+              <Typography className="app-subtitle" variant="body2" style={{color:'orange'}} >
+                {lexOutput}
+              </Typography>
+              <Typography className="app-subtitle" variant="subtitle2" >
+                {"Syntax logs: "}
+              </Typography>
+              <Typography className="app-subtitle" variant="body2" style={{color:'orange'}} >
+                {syntaxOutput}
               </Typography>
             </Paper>
             </Grid>
